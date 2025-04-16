@@ -105,20 +105,39 @@ if st.button("Analyze"):
         stock_data = stock_data[['Close']].reset_index()
         stock_data['Date'] = stock_data['Date'].dt.date
 
+        # Reddit daily sentiment
         reddit_df['date'] = reddit_df['created_utc'].dt.date
-        daily_sentiment = reddit_df.groupby('date')['sentiment'].mean().reset_index()
+        reddit_daily = reddit_df.groupby('date')['sentiment'].mean().reset_index()
+        reddit_daily.columns = ['date', 'reddit_sentiment']
 
-        merged = pd.merge(stock_data, daily_sentiment, how='left', left_on='Date', right_on='date')
+        # News daily sentiment
+        news_rows = []
+        for article, score in news_data:
+            date_str = article.get('publishedAt', '')[:10]
+            try:
+                date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                news_rows.append({'date': date, 'news_sentiment': score})
+            except:
+                continue
+
+        news_df = pd.DataFrame(news_rows)
+        news_daily = news_df.groupby('date')['news_sentiment'].mean().reset_index()
+
+        # Merge and average
+        sentiment_df = pd.merge(reddit_daily, news_daily, on='date', how='outer').fillna(0)
+        sentiment_df['avg_sentiment'] = sentiment_df[['reddit_sentiment', 'news_sentiment']].mean(axis=1)
+
+        merged = pd.merge(stock_data, sentiment_df, left_on='Date', right_on='date', how='left')
 
         fig, ax1 = plt.subplots(figsize=(10, 4))
         ax2 = ax1.twinx()
 
         ax1.plot(merged['Date'], merged['Close'], color='green', label='Stock Price')
-        ax2.plot(merged['Date'], merged['sentiment'], color='blue', label='Sentiment')
+        ax2.plot(merged['Date'], merged['avg_sentiment'], color='blue', label='Avg Sentiment')
 
         ax1.set_xlabel('Date')
         ax1.set_ylabel('Stock Price ($)', color='green')
-        ax2.set_ylabel('Reddit Sentiment', color='blue')
+        ax2.set_ylabel('Reddit + News Sentiment', color='blue')
         ax1.tick_params(axis='y', labelcolor='green')
         ax2.tick_params(axis='y', labelcolor='blue')
         plt.title(f"{stock_symbol} - Sentiment vs Stock Price")

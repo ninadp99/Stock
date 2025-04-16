@@ -9,6 +9,8 @@ import praw
 import requests
 import os
 from dotenv import load_dotenv
+import matplotlib.pyplot as plt
+from io import StringIO
 
 # Load environment variables
 load_dotenv()
@@ -52,12 +54,10 @@ def fetch_news(query, page_size=20):
     return response.json().get("articles", [])
 
 # Analyze sentiment
-
 def analyze_sentiment(text):
     return sia.polarity_scores(text)['compound']
 
 # Fetch news + sentiment
-
 def get_news_sentiments(stock_symbol, page_size=20):
     articles = fetch_news(stock_symbol, page_size)
     sentiments = []
@@ -100,6 +100,31 @@ if st.button("Analyze"):
         st.metric("Reddit Sentiment", f"{reddit_score:.2%}")
         st.metric("News Sentiment", f"{news_score:.2%}")
 
+        st.subheader("📉 Sentiment vs. Stock Price (Last 30 Days)")
+        stock_data = yf.Ticker(stock_symbol).history(period="30d")
+        stock_data = stock_data[['Close']].reset_index()
+        stock_data['Date'] = stock_data['Date'].dt.date
+
+        reddit_df['date'] = reddit_df['created_utc'].dt.date
+        daily_sentiment = reddit_df.groupby('date')['sentiment'].mean().reset_index()
+
+        merged = pd.merge(stock_data, daily_sentiment, how='left', left_on='Date', right_on='date')
+
+        fig, ax1 = plt.subplots(figsize=(10, 4))
+        ax2 = ax1.twinx()
+
+        ax1.plot(merged['Date'], merged['Close'], color='green', label='Stock Price')
+        ax2.plot(merged['Date'], merged['sentiment'], color='blue', label='Sentiment')
+
+        ax1.set_xlabel('Date')
+        ax1.set_ylabel('Stock Price ($)', color='green')
+        ax2.set_ylabel('Reddit Sentiment', color='blue')
+        ax1.tick_params(axis='y', labelcolor='green')
+        ax2.tick_params(axis='y', labelcolor='blue')
+        plt.title(f"{stock_symbol} - Sentiment vs Stock Price")
+        fig.tight_layout()
+        st.pyplot(fig)
+
         st.subheader("🗣️ Reddit Posts")
         for _, post in reddit_df.head(5).iterrows():
             st.markdown(f"**{post['title']}**  \n[View Post]({post['url']})")
@@ -114,3 +139,26 @@ if st.button("Analyze"):
             st.markdown(f"**{title}**  \n[Read More]({url})")
             st.markdown(f"Sentiment: {score:.2f}")
             st.text_area("Summary", desc, height=100)
+
+        # 📁 CSV Export
+        st.subheader("⬇️ Download Data")
+        csv_buffer = StringIO()
+        export_df = reddit_df[['title', 'text', 'sentiment', 'url']]
+        export_df.to_csv(csv_buffer, index=False)
+        st.download_button("Download Reddit Data as CSV", csv_buffer.getvalue(), file_name=f"{stock_symbol}_reddit_sentiment.csv", mime="text/csv")
+
+        # 🧠 Simple Summary Generator (Keyword-based)
+        st.subheader("🧠 Insight Summary")
+        if reddit_score > news_score:
+            source = "Reddit discussions"
+        else:
+            source = "News media"
+
+        if combined_score > 0.2:
+            tone = "positive"
+        elif combined_score < -0.2:
+            tone = "negative"
+        else:
+            tone = "mixed"
+
+        st.write(f"Overall sentiment for **{stock_symbol}** is {tone}. {source} currently shows the strongest influence on market perception.")

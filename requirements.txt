@@ -1,0 +1,8 @@
+streamlit
+praw
+pandas
+numpy
+nltk
+yfinance
+requests
+python-dotenv

@@ -6,3 +6,4 @@ nltk
 yfinance
 requests
 python-dotenv
+matplotlib

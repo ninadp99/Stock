@@ -124,7 +124,10 @@ if st.button("Analyze"):
         news_daily = news_df.groupby('date')['news_sentiment'].mean().reset_index()
 
         # Merge and average
-        sentiment_df = pd.merge(reddit_daily, news_daily, on='date', how='outer').fillna(0)
+        sentiment_df = pd.merge(reddit_daily, news_daily, on='date', how='outer')
+        sentiment_df.sort_values('date', inplace=True)
+        sentiment_df['reddit_sentiment'] = sentiment_df['reddit_sentiment'].fillna(method='ffill')
+        sentiment_df['news_sentiment'] = sentiment_df['news_sentiment'].fillna(method='ffill')
         sentiment_df['avg_sentiment'] = sentiment_df[['reddit_sentiment', 'news_sentiment']].mean(axis=1)
 
         merged = pd.merge(stock_data, sentiment_df, left_on='Date', right_on='date', how='left')

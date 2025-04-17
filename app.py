@@ -153,13 +153,12 @@ if st.button("Analyze"):
         st.pyplot(fig)
 
         # Reddit posts preview
-                # Reddit posts preview
         st.subheader("🗣️ Top Reddit Posts")
         for _, r in reddit_df.head(5).iterrows():
             # Display title with clickable link and sentiment
             st.markdown(f"**{r['title']}**  
 [Link]({r['url']})")
-            st.write(f"Sentiment: {r['sentiment']:.2f}")
+            st.write(f"Sentiment: {r['sentiment']:.2f}") {r['sentiment']:.2f}")
 
         # News tables
         st.subheader("📰 News Articles")

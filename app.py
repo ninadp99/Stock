@@ -65,15 +65,17 @@ def fetch_news_articles(stock_symbol):
     guardian_response = requests.get(guardian_url, params=guardian_params).json()
     guardian_articles = guardian_response.get("response", {}).get("results", [])
 
+    # Parse NYTimes articles
     nyt_data = []
     for item in nyt_articles:
         nyt_data.append({
             'title': item.get('headline', {}).get('main', ''),
-            'description': item.get('snippet', ''),
+            'description': item.get('abstract') or item.get('snippet', ''),
             'publishedAt': item.get('pub_date', ''),
             'url': item.get('web_url', '')
         })
 
+    # Parse Guardian articles
     guardian_data = []
     for item in guardian_articles:
         guardian_data.append({
@@ -186,4 +188,3 @@ if st.button("Analyze"):
         dominant = "Reddit discussions" if reddit_score > news_score else "News media"
         tone = "positive" if combined_score > 0.2 else "negative" if combined_score < -0.2 else "mixed"
         st.write(f"Overall sentiment for **{stock_symbol}** is {tone}. {dominant} currently shows the strongest influence on market perception.")
-

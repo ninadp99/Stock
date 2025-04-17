@@ -110,6 +110,13 @@ def fetch_news_articles(stock_symbol):
 
     return nyt_data, guardian_data
 
+# Fix for duplicate element IDs in Streamlit text_area
+# When rendering Reddit posts, use a unique key for each text_area
+for i, post in reddit_df.head(5).iterrows():
+    st.markdown(f"**{post['title']}**  \n[View Post]({post['url']})")
+    st.markdown(f"Sentiment: {post['sentiment']:.2f}")
+    st.text_area(f"Content {i}", post['text'], height=100, key=f"reddit_text_{i}")
+
 # Streamlit UI
 st.set_page_config(page_title="Stock Sentiment Analyzer", layout="wide")
 st.title("\U0001F4CA Stock Sentiment Analyzer")

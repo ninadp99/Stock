@@ -148,6 +148,7 @@ if st.button("Analyze"):
         sentiment_df['avg_sentiment'] = sentiment_df[['reddit_sentiment', 'news_sentiment']].mean(axis=1)
         sentiment_df = sentiment_df.reset_index()
 
+        sentiment_df['date'] = pd.to_datetime(sentiment_df['date']).dt.date
         merged = pd.merge(stock_data, sentiment_df, left_on='Date', right_on='date', how='left')
 
         fig, ax1 = plt.subplots(figsize=(10, 4))

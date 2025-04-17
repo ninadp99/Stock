@@ -46,43 +46,56 @@ def get_reddit_posts(stock_symbol, limit=50):
     return pd.DataFrame(posts)
 
 def fetch_news_articles(stock_symbol):
-    nyt_url = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
-    nyt_params = {
-        "q": stock_symbol,
-        "api-key": nytimes_api_key,
-        "sort": "newest",
-        "fq": "document_type:(\"article\")"
-    }
-    nyt_response = requests.get(nyt_url, params=nyt_params).json()
-    nyt_articles = nyt_response.get("response", {}).get("docs", [])
-
-    guardian_url = "https://content.guardianapis.com/search"
-    guardian_params = {
-        "q": stock_symbol,
-        "api-key": guardian_api_key,
-        "order-by": "newest",
-        "show-fields": "trailText"
-    }
-    guardian_response = requests.get(guardian_url, params=guardian_params).json()
-    guardian_articles = guardian_response.get("response", {}).get("results", [])
-
     nyt_data = []
-    for item in nyt_articles:
-        nyt_data.append({
-            'title': item.get('headline', {}).get('main', ''),
-            'description': item.get('snippet', ''),
-            'publishedAt': item.get('pub_date', ''),
-            'url': item.get('web_url', '')
-        })
-
     guardian_data = []
-    for item in guardian_articles:
-        guardian_data.append({
-            'title': item.get('webTitle', ''),
-            'description': item.get('fields', {}).get('trailText', ''),
-            'publishedAt': item.get('webPublicationDate', ''),
-            'url': item.get('webUrl', '')
-        })
+
+    try:
+        nyt_url = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
+        nyt_params = {
+            "q": stock_symbol,
+            "api-key": nytimes_api_key,
+            "sort": "newest",
+            "fq": "document_type:(\"article\")"
+        }
+        nyt_response = requests.get(nyt_url, params=nyt_params)
+        if nyt_response.status_code == 200:
+            nyt_json = nyt_response.json()
+            nyt_articles = nyt_json.get("response", {}).get("docs", [])
+            for item in nyt_articles:
+                nyt_data.append({
+                    'title': item.get('headline', {}).get('main', ''),
+                    'description': item.get('abstract') or item.get('lead_paragraph', ''),
+                    'publishedAt': item.get('pub_date', ''),
+                    'url': item.get('web_url', '')
+                })
+        else:
+            print("NYT API error:", nyt_response.status_code)
+    except Exception as e:
+        print("NYT fetch error:", e)
+
+    try:
+        guardian_url = "https://content.guardianapis.com/search"
+        guardian_params = {
+            "q": stock_symbol,
+            "api-key": guardian_api_key,
+            "order-by": "newest",
+            "show-fields": "trailText"
+        }
+        guardian_response = requests.get(guardian_url, params=guardian_params)
+        if guardian_response.status_code == 200:
+            guardian_json = guardian_response.json()
+            guardian_articles = guardian_json.get("response", {}).get("results", [])
+            for item in guardian_articles:
+                guardian_data.append({
+                    'title': item.get('webTitle', ''),
+                    'description': item.get('fields', {}).get('trailText', ''),
+                    'publishedAt': item.get('webPublicationDate', ''),
+                    'url': item.get('webUrl', '')
+                })
+        else:
+            print("Guardian API error:", guardian_response.status_code)
+    except Exception as e:
+        print("Guardian fetch error:", e)
 
     return nyt_data, guardian_data
 
@@ -177,7 +190,7 @@ if st.button("Analyze"):
             guardian_df = pd.DataFrame(guardian_data, columns=["Headline", "Date Posted", "Sentiment", "Description"])
             st.write(guardian_df.to_html(escape=False, index=False), unsafe_allow_html=True)
 
-        st.subheader("⬇️ Download Data")
+        st.subheader("\u2B07\uFE0F Download Data")
         csv_buffer = StringIO()
         export_df = reddit_df[['title', 'text', 'sentiment', 'url']]
         export_df.to_csv(csv_buffer, index=False)

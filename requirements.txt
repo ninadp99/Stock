@@ -7,4 +7,3 @@ praw
 requests
 python-dotenv
 matplotlib
-fin-news

@@ -37,7 +37,10 @@ def get_ticker_symbol(company_name):
     try:
         query = f"https://query1.finance.yahoo.com/v1/finance/search?q={company_name}"
         response = requests.get(query).json()
-        return response['quotes'][0]['symbol'] if response['quotes'] else company_name
+        for quote in response.get('quotes', []):
+            if 'symbol' in quote and 'shortname' in quote:
+                return quote['symbol']
+        return company_name
     except:
         return company_name
 

@@ -11,7 +11,6 @@ import os
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
 from io import StringIO
-yf.pdr_override()
 
 # Load environment variables
 load_dotenv()

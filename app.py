@@ -157,7 +157,7 @@ if st.button("Analyze"):
         for _, r in reddit_df.head(5).iterrows():
             # Display title with clickable link
             st.markdown(f"**{r['title']}**  
-[Link]({r['url']})"), unsafe_allow_html=True)
+[Link]({r['url']})", unsafe_allow_html=True)
             # Display sentiment score
             st.write(f"Sentiment: {r['sentiment']:.2f}")
 

@@ -110,12 +110,12 @@ def fetch_news_articles(stock_symbol):
 
     return nyt_data, guardian_data
 
-
+# Display Reddit posts if they exist
 if 'reddit_df' in locals():
     for i, post in reddit_df.head(5).iterrows():
         st.markdown(f"**{post['title']}**  \n[View Post]({post['url']})")
         st.markdown(f"Sentiment: {post['sentiment']:.2f}")
-        st.text_area("Content", post['text'], height=100, key=f"reddit_text_{i}")
+        st.text_area("Content", post['text'], height=100, key=f"reddit_text_area_{i}")
 
 
 # Streamlit UI

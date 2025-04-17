@@ -97,6 +97,7 @@ if st.button("Analyze"):
         nyt_data = []
         guardian_data = []
         news_sentiments = []
+        news_dates = []
 
         for article in articles:
             title = article.get('title', 'N/A')
@@ -106,14 +107,15 @@ if st.button("Analyze"):
             published_at = article.get('publishedAt', '')[:10]
             try:
                 date = datetime.strptime(published_at, '%Y-%m-%d').date()
+                news_dates.append(date)
             except:
-                date = 'N/A'
+                date = None
             url = article.get('url', '')
             source = 'nytimes' if 'nytimes.com' in str(url) or 'nyt' in str(url) else 'guardian'
             link = f"[{title}]({url})" if url else title
             news_sentiments.append(sentiment)
 
-            row = [link, date, round(sentiment, 2), description]
+            row = [link, published_at if published_at else 'N/A', round(sentiment, 2), description]
             if source == 'nytimes':
                 nyt_data.append(row)
             else:
@@ -137,15 +139,13 @@ if st.button("Analyze"):
         st.subheader("📉 Sentiment vs. Stock Price (Last 30 Days)")
         stock_data = yf.Ticker(stock_symbol).history(period="30d")
         stock_data = stock_data[['Close']].reset_index()
-        stock_data['Date'] = stock_data['Date'].dt.date
+        stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date
 
         reddit_df['date'] = reddit_df['created_utc'].dt.date
         reddit_daily = reddit_df.groupby('date')['sentiment'].mean().reset_index()
         reddit_daily.columns = ['date', 'reddit_sentiment']
 
-        news_df = pd.DataFrame(articles)
-        news_df['sentiment'] = news_sentiments
-        news_df['date'] = pd.to_datetime(news_df['publishedAt'], errors='coerce').dt.date
+        news_df = pd.DataFrame({'date': news_dates, 'sentiment': news_sentiments})
         news_daily = news_df.groupby('date')['sentiment'].mean().reset_index()
         news_daily.columns = ['date', 'news_sentiment']
 

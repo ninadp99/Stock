@@ -1,26 +1,48 @@
-Stock Sentiment Analyzer 📊
+# 📊 Stock Sentiment Analyzer
 
-This web app analyzes Reddit and news sentiment for any given stock symbol using NLP and shows market mood as Bullish, Bearish, or Neutral.
+This Streamlit web app helps users understand the market sentiment around publicly traded companies by analyzing social and news media content. The app uses sentiment analysis on Reddit discussions and online news articles from The Guardian and NYTimes APIs.
 
-## Features
-- Fetches Reddit posts from r/stocks, r/wallstreetbets, and r/investing
-- Fetches financial news using NewsAPI
-- Analyzes sentiment using NLTK's VADER
-- Combines sentiment scores to predict market mood
+## 🔍 Features
 
-## How to Run
-1. Clone this repo
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-3. Create a `.env` file:
-```env
-REDDIT_CLIENT_ID=your_id
-REDDIT_CLIENT_SECRET=your_secret
-REDDIT_USER_AGENT=your_user_agent
-NEWS_API_KEY=your_newsapi_key
-```
-4. Run the app:
-```bash
-streamlit run app.py
+- **Real-time Sentiment Analysis**: Gathers Reddit posts and news articles based on a stock ticker (e.g., `TSLA`, `AAPL`).
+- **News Coverage**: Pulls and displays articles from:
+  - 📰 The New York Times
+  - 🗞 The Guardian
+- **Interactive Visualizations**:
+  - Dual-axis chart showing stock prices and sentiment trends over the past 30 days.
+  - Keyword-tagged Reddit posts and news summaries.
+- **Export Capability**: Download sentiment data as CSV.
+- **Clear Market Mood**: Bullish / Bearish / Neutral sentiment indicator.
+
+## ⚙️ How It Works
+
+1. **Reddit Integration**:
+   - Uses the `praw` library to scrape relevant posts from finance subreddits.
+   - Applies NLTK’s VADER sentiment model to Reddit post text.
+
+2. **News Integration**:
+   - Queries the NYTimes and The Guardian APIs for recent news on the stock.
+   - Extracts headline, date, description, URL, and sentiment for each article.
+
+3. **Visualization**:
+   - `matplotlib` is used to plot historical stock price vs average sentiment trend.
+
+4. **Sentiment Analysis**:
+   - VADER compound sentiment score is calculated and averaged per day.
+
+## 📦 Tech Stack
+
+- Python
+- Streamlit
+- yfinance
+- praw
+- NLTK (VADER Sentiment)
+- NYTimes Article Search API
+- The Guardian Content API
+
+## 🛠 Setup Instructions
+
+1. **Clone the Repository**  
+   ```bash
+   git clone https://github.com/your-username/your-repo-name.git
+   cd your-repo-name

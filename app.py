@@ -113,10 +113,10 @@ def fetch_news_articles(stock_symbol):
 
 def display_reddit_posts(reddit_df):
     st.subheader("🗣️ Reddit Posts")
-    for i, post in reddit_df.head(5).iterrows():
-        st.markdown(f"**{post['title']}**  \n[View Post]({post['url']})")
-        st.text_area(label=f"Content {i}", value=post['text'], height=100, key=f"text_{i}_{post['url']}")
-        
+    for i, post in enumerate(reddit_df.head(5).itertuples(index=False)):
+        st.markdown(f"**{post.title}**  \n[View Post]({post.url})")
+        st.text_area(label="Content", value=post.text, height=100, key=f"text_{i}")
+
 # Streamlit UI
 st.set_page_config(page_title="Stock Sentiment Analyzer", layout="wide")
 st.title("\U0001F4CA Stock Sentiment Analyzer")

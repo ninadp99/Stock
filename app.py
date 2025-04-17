@@ -173,36 +173,34 @@ if st.button("Analyze"):
             st.text_area("Content", post['text'], height=100)
 
         st.subheader("📰 News Articles")
-        articles = fetch_news_articles(stock_symbol)
-        enriched_news = []
-        for article in articles:
+        nyt_data = []
+        guardian_data = []
+
+        for article in enriched_news:
             title = article.get('title', 'N/A')
             description = article.get('description', 'No summary available')
-            published_at = article.get('publishedAt', '')[:10]
-            try:
-                date = datetime.strptime(published_at, '%Y-%m-%d').date()
-                score = analyze_sentiment(f"{title} {description}")
-                article['sentiment'] = score
-                article['date'] = date
-                enriched_news.append(article)
-            except:
-                continue
+            sentiment = article.get('sentiment', 0)
+            date = article.get('date', 'N/A')
+            url = article.get('url') or article.get('web_url') or article.get('webUrl', '')
+            source = 'nytimes' if 'nytimes.com' in str(url) or 'nyt' in str(url) else 'guardian'
+            link = f"[{title}]({url})" if url else title
 
-        news_df_display = pd.DataFrame(enriched_news)
-        for _, row in news_df_display.head(5).iterrows():
-            title = row.get('title', 'N/A')
-            description = row.get('description', 'No summary available')
-            date = row.get('date', 'N/A')
-            sentiment = row.get('sentiment', 0)
-            url = row.get('url', '') or row.get('webUrl', '') or row.get('web_url', '')
+            if source == 'nytimes':
+                nyt_data.append([link, date, round(sentiment, 2), description])
+            else:
+                guardian_data.append([link, date, round(sentiment, 2), description])
 
-            st.markdown(f"**{title}**")
-            st.markdown(f"🗓 Date: {date}")
-            st.markdown(f"📊 Sentiment: {sentiment:.2f}")
-            st.markdown(f"📝 {description}")
-            if url:
-                st.markdown(f"🔗 [Read More]({url})")
-                st.markdown(f"🔗 [Read More]({url})")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("### 📰 NYTimes")
+            nyt_df = pd.DataFrame(nyt_data, columns=["Headline", "Date Posted", "Sentiment", "Description"])
+            st.write(nyt_df.to_html(escape=False, index=False), unsafe_allow_html=True)
+
+        with col2:
+            st.markdown("### 🗞 The Guardian")
+            guardian_df = pd.DataFrame(guardian_data, columns=["Headline", "Date Posted", "Sentiment", "Description"])
+            st.write(guardian_df.to_html(escape=False, index=False), unsafe_allow_html=True)
 
         st.subheader("⬇️ Download Data")
         csv_buffer = StringIO()

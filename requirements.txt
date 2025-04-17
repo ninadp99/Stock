@@ -1,9 +1,11 @@
 streamlit
-praw
 pandas
 numpy
 nltk
 yfinance
+praw
 requests
 python-dotenv
 matplotlib
+fin-news
+pdblp

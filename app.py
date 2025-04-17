@@ -152,18 +152,14 @@ if st.button("Analyze"):
         ax1.set_ylabel('Price',color='green'); ax2.set_ylabel('Sentiment',color='blue')
         st.pyplot(fig)
 
-        # Reddit posts preview
-        st.subheader("🗣️ Top Reddit Posts")
-        for _, r in reddit_df.head(5).iterrows():
-            # Display title with clickable link
-                    # Reddit posts preview
+                # Reddit posts preview
         st.subheader("🗣️ Top Reddit Posts")
         for _, r in reddit_df.head(5).iterrows():
             # Display title with clickable link
             st.markdown(f"**{r['title']}**  
-[Link]({r['url']})")
+[Link]({r['url']})", unsafe_allow_html=True)
             # Display sentiment score
-            st.write(f"Sentiment: {r['sentiment']:.2f}"): {r['sentiment']:.2f}")
+            st.write(f"Sentiment: {r['sentiment']:.2f}")
 
         # News tables
         st.subheader("📰 News Articles")

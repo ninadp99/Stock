@@ -186,3 +186,4 @@ if st.button("Analyze"):
         dominant = "Reddit discussions" if reddit_score > news_score else "News media"
         tone = "positive" if combined_score > 0.2 else "negative" if combined_score < -0.2 else "mixed"
         st.write(f"Overall sentiment for **{stock_symbol}** is {tone}. {dominant} currently shows the strongest influence on market perception.")
+

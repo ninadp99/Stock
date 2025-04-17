@@ -113,10 +113,11 @@ def fetch_news_articles(stock_symbol):
 def display_reddit_posts(reddit_df):
     st.subheader("🗣️ Reddit Posts")
     for i, post in reddit_df.head(5).iterrows():
+        unique_key = f"reddit_text_area_{i}_{hash(post['url'])}"
         st.markdown(f"**{post['title']}**  \n[View Post]({post['url']})")
         st.markdown(f"Sentiment: {post['sentiment']:.2f}")
-        st.text_area("Content", post['text'], height=100, key=f"reddit_text_area_{i}_{hash(post['url'])}")
-
+        st.text_area("Content", post['text'], height=100, key=unique_key)
+        
 # Streamlit UI
 st.set_page_config(page_title="Stock Sentiment Analyzer", layout="wide")
 st.title("\U0001F4CA Stock Sentiment Analyzer")

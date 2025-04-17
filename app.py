@@ -173,9 +173,20 @@ if st.button("Analyze"):
             st.text_area("Content", post['text'], height=100)
 
         st.subheader("📰 News Articles")
-        for _, row in news_df.head(5).iterrows():
-            st.markdown(f"**Date: {row['date']}**")
-            st.markdown(f"Sentiment: {row['sentiment']:.2f}")
+        articles = fetch_news_articles(stock_symbol)
+        news_with_sentiment = news_df.merge(pd.DataFrame(articles), how='left', left_on='date', right_on=lambda x: pd.to_datetime(articles[x]['publishedAt']).dt.date if 'publishedAt' in articles[x] else None)
+
+        for _, row in news_with_sentiment.head(5).iterrows():
+            title = row.get('title', 'N/A')
+            description = row.get('description', 'No summary available')
+            date = row.get('date', 'N/A')
+            url = row.get('url', '')  # fallback
+            st.markdown(f"**{title}**")
+            st.markdown(f"🗓 Date: {date}")
+            st.markdown(f"📊 Sentiment: {row['sentiment']:.2f}")
+            st.markdown(f"📝 {description}")
+            if url:
+                st.markdown(f"🔗 [Read More]({url})")
 
         st.subheader("⬇️ Download Data")
         csv_buffer = StringIO()

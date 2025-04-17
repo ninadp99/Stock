@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
-from datetime import datetime, timedelta
+from datetime import datetime
 import yfinance as yf
 import praw
 import requests
@@ -82,6 +82,7 @@ def fetch_news_articles(stock_symbol):
         })
     return combined
 
+# Streamlit UI
 st.set_page_config(page_title="Stock Sentiment Analyzer", layout="wide")
 st.title("📊 Stock Sentiment Analyzer")
 
@@ -90,14 +91,11 @@ if st.button("Analyze"):
     with st.spinner("Fetching data and analyzing sentiment..."):
         reddit_df = get_reddit_posts(stock_symbol)
         reddit_df['sentiment'] = reddit_df['text'].apply(analyze_sentiment)
-
         reddit_score = reddit_df['sentiment'].mean() if not reddit_df.empty else 0
 
         articles = fetch_news_articles(stock_symbol)
-        nyt_data = []
-        guardian_data = []
-        news_sentiments = []
-        news_dates = []
+        nyt_data, guardian_data = [], []
+        news_sentiments, news_dates = [], []
 
         for article in articles:
             title = article.get('title', 'N/A')
@@ -114,7 +112,6 @@ if st.button("Analyze"):
             source = 'nytimes' if 'nytimes.com' in str(url) or 'nyt' in str(url) else 'guardian'
             link = f"[{title}]({url})" if url else title
             news_sentiments.append(sentiment)
-
             row = [link, published_at if published_at else 'N/A', round(sentiment, 2), description]
             if source == 'nytimes':
                 nyt_data.append(row)
@@ -124,21 +121,16 @@ if st.button("Analyze"):
         news_score = np.mean(news_sentiments) if news_sentiments else 0
         combined_score = np.mean([reddit_score, news_score])
 
-        if combined_score > 0.2:
-            trend = "📈 Bullish"
-        elif combined_score < -0.2:
-            trend = "📉 Bearish"
-        else:
-            trend = "📋 Neutral"
-
+        # Display trend
+        trend = "📈 Bullish" if combined_score > 0.2 else "📉 Bearish" if combined_score < -0.2 else "📋 Neutral"
         st.success(f"**Predicted Market Trend for {stock_symbol}: {trend}**")
         st.metric("Average Sentiment", f"{combined_score:.2%}")
         st.metric("Reddit Sentiment", f"{reddit_score:.2%}")
         st.metric("News Sentiment", f"{news_score:.2%}")
 
+        # Chart
         st.subheader("📉 Sentiment vs. Stock Price (Last 30 Days)")
-        stock_data = yf.Ticker(stock_symbol).history(period="30d")
-        stock_data = stock_data[['Close']].reset_index()
+        stock_data = yf.Ticker(stock_symbol).history(period="30d")[['Close']].reset_index()
         stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date
 
         reddit_df['date'] = reddit_df['created_utc'].dt.date
@@ -151,6 +143,7 @@ if st.button("Analyze"):
 
         sentiment_df = pd.merge(reddit_daily, news_daily, on='date', how='outer')
         sentiment_df = sentiment_df.set_index('date').asfreq('D').fillna(method='ffill').reset_index()
+        sentiment_df['date'] = pd.to_datetime(sentiment_df['date']).dt.date  # ✅ FIX HERE
         sentiment_df['avg_sentiment'] = sentiment_df[['reddit_sentiment', 'news_sentiment']].mean(axis=1)
 
         merged = pd.merge(stock_data, sentiment_df, left_on='Date', right_on='date', how='left')
@@ -159,7 +152,6 @@ if st.button("Analyze"):
         ax2 = ax1.twinx()
         ax1.plot(merged['Date'], merged['Close'], color='green', label='Stock Price')
         ax2.plot(merged['Date'], merged['avg_sentiment'], color='blue', label='Avg Sentiment')
-
         ax1.set_xlabel('Date')
         ax1.set_ylabel('Stock Price ($)', color='green')
         ax2.set_ylabel('Reddit + News Sentiment', color='blue')
@@ -169,37 +161,34 @@ if st.button("Analyze"):
         fig.tight_layout()
         st.pyplot(fig)
 
+        # Reddit Posts
         st.subheader("🗣️ Reddit Posts")
         for _, post in reddit_df.head(5).iterrows():
             st.markdown(f"**{post['title']}**  \n[View Post]({post['url']})")
             st.markdown(f"Sentiment: {post['sentiment']:.2f}")
             st.text_area("Content", post['text'], height=100)
 
+        # News Articles
         st.subheader("📰 News Articles")
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("### 📰 NYTimes")
             nyt_df = pd.DataFrame(nyt_data, columns=["Headline", "Date Posted", "Sentiment", "Description"])
             st.write(nyt_df.to_html(escape=False, index=False), unsafe_allow_html=True)
-
         with col2:
             st.markdown("### 🗞 The Guardian")
             guardian_df = pd.DataFrame(guardian_data, columns=["Headline", "Date Posted", "Sentiment", "Description"])
             st.write(guardian_df.to_html(escape=False, index=False), unsafe_allow_html=True)
 
+        # Download CSV
         st.subheader("⬇️ Download Data")
         csv_buffer = StringIO()
         export_df = reddit_df[['title', 'text', 'sentiment', 'url']]
         export_df.to_csv(csv_buffer, index=False)
         st.download_button("Download Reddit Data as CSV", csv_buffer.getvalue(), file_name=f"{stock_symbol}_reddit_sentiment.csv", mime="text/csv")
 
+        # Insight Summary
         st.subheader("🧠 Insight Summary")
         dominant = "Reddit discussions" if reddit_score > news_score else "News media"
-        if combined_score > 0.2:
-            tone = "positive"
-        elif combined_score < -0.2:
-            tone = "negative"
-        else:
-            tone = "mixed"
-
+        tone = "positive" if combined_score > 0.2 else "negative" if combined_score < -0.2 else "mixed"
         st.write(f"Overall sentiment for **{stock_symbol}** is {tone}. {dominant} currently shows the strongest influence on market perception.")

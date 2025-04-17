@@ -96,7 +96,7 @@ def fetch_news_articles(stock_symbol):
         if guardian_response.status_code == 200:
             guardian_json = guardian_response.json()
             guardian_articles = guardian_json.get("response", {}).get("results", [])
-            for item in guardian_articles:
+            for i, item in enumerate(guardian_articles):
                 guardian_data.append({
                     'title': item.get('webTitle', ''),
                     'description': item.get('fields', {}).get('trailText', ''),

@@ -8,4 +8,3 @@ requests
 python-dotenv
 matplotlib
 fin-news
-pdblp

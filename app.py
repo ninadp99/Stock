@@ -53,21 +53,23 @@ def fetch_news_articles(stock_symbol):
         nyt_url = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
         nyt_params = {
             "q": stock_symbol,
-            "api-key": nytimes_api_key,
             "sort": "newest",
-            "fq": "document_type:(\"article\")"
+            "api-key": nytimes_api_key
         }
         nyt_response = requests.get(nyt_url, params=nyt_params)
         if nyt_response.status_code == 200:
             nyt_json = nyt_response.json()
-            articles = nyt_json.get("response", {}).get("docs", [])
-            for article in articles:
-                nyt_data.append({
-                    "title": article.get("headline", {}).get("main", ""),
-                    "description": article.get("snippet", ""),
-                    "publishedAt": article.get("pub_date", ""),
-                    "url": article.get("web_url", "")
-                })
+            docs = nyt_json.get("response", {}).get("docs", [])
+            if docs:
+                for article in docs:
+                    nyt_data.append({
+                        "title": article.get("headline", {}).get("main", ""),
+                        "description": article.get("snippet", ""),
+                        "publishedAt": article.get("pub_date", ""),
+                        "url": article.get("web_url", "")
+                    })
+            else:
+                st.warning("No NYTimes articles returned for this query.")
         else:
             st.warning(f"NYTimes API error: {nyt_response.status_code}")
     except Exception as e:

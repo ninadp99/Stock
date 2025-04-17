@@ -11,8 +11,6 @@ import os
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
 from io import StringIO
-from fin_news import FinNewsClient
-import pdblp
 
 # Load environment variables
 load_dotenv()
@@ -24,12 +22,8 @@ reddit = praw.Reddit(
     user_agent=os.getenv("REDDIT_USER_AGENT")
 )
 
-# Initialize FinNews and Bloomberg
-finnews_api_key = os.getenv("THENEWS_API_KEY")
+# NYTimes API Key
 nytimes_api_key = os.getenv("NYTIMES_API_KEY")
-fin_client = FinNewsClient(api_key=finnews_api_key)
-bloomberg_client = pdblp.BCon(timeout=5000)
-bloomberg_client.start()
 
 # NLTK sentiment analyzer
 nltk.download('vader_lexicon')
@@ -52,10 +46,8 @@ def get_reddit_posts(stock_symbol, limit=50):
 def analyze_sentiment(text):
     return sia.polarity_scores(text)['compound']
 
-# Fetch news from FinNews + NYTimes
+# Fetch news from NYTimes only
 def fetch_news_articles(stock_symbol):
-    finnews_articles = fin_client.get_news(symbol=stock_symbol, limit=10)
-
     nyt_url = f"https://api.nytimes.com/svc/search/v2/articlesearch.json"
     params = {
         "q": stock_symbol,
@@ -66,13 +58,6 @@ def fetch_news_articles(stock_symbol):
     nyt_articles = nyt_response.get("response", {}).get("docs", [])
 
     combined = []
-    for item in finnews_articles:
-        combined.append({
-            'title': item.get('title', ''),
-            'description': item.get('summary', ''),
-            'publishedAt': item.get('published', '')
-        })
-
     for item in nyt_articles:
         combined.append({
             'title': item.get('headline', {}).get('main', ''),
@@ -82,7 +67,6 @@ def fetch_news_articles(stock_symbol):
     return combined
 
 # Parse and score sentiment
-
 def get_news_sentiments(stock_symbol):
     articles = fetch_news_articles(stock_symbol)
     sentiments = []

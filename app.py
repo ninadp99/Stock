@@ -16,7 +16,7 @@ from io import StringIO
 load_dotenv()
 
 # Initialize Reddit API client
-treddit = praw.Reddit(
+reddit = praw.Reddit(
     client_id=os.getenv("REDDIT_CLIENT_ID"),
     client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
     user_agent=os.getenv("REDDIT_USER_AGENT")
@@ -38,7 +38,7 @@ def analyze_sentiment(text: str) -> float:
 def get_reddit_posts(stock_symbol: str, limit: int = 50) -> pd.DataFrame:
     """Fetch recent Reddit posts mentioning the stock symbol."""
     posts = []
-    for post in treadit.subreddit("stocks+investing+wallstreetbets").search(
+    for post in reddit.subreddit("stocks+investing+wallstreetbets").search(
         f"{stock_symbol} stock", limit=limit
     ):
         posts.append({
@@ -156,9 +156,14 @@ if st.button("Analyze"):
         st.subheader("🗣️ Top Reddit Posts")
         for _, r in reddit_df.head(5).iterrows():
             # Display title with clickable link
-            st.markdown(f"**{r['title']}**  \n[Link]({r['url']})")
+                    # Reddit posts preview
+        st.subheader("🗣️ Top Reddit Posts")
+        for _, r in reddit_df.head(5).iterrows():
+            # Display title with clickable link
+            st.markdown(f"**{r['title']}**  
+[Link]({r['url']})")
             # Display sentiment score
-            st.write(f"Sentiment: {r['sentiment']:.2f}")
+            st.write(f"Sentiment: {r['sentiment']:.2f}"): {r['sentiment']:.2f}")
 
         # News tables
         st.subheader("📰 News Articles")

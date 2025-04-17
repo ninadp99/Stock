@@ -117,7 +117,8 @@ def display_reddit_posts(reddit_df):
         unique_key = f"reddit_post_{i}_{uuid.uuid4()}"
         st.markdown(f"**{post['title']}**  \n[View Post]({post['url']})")
         st.markdown(f"Sentiment: {post['sentiment']:.2f}")
-        st.text_area(f"Content for Post {i}", post['text'], height=100, key=f"content_{i}_{uuid.uuid4()}")
+        st.text_area(f"Content for post {i}", post['text'], height=100, key=unique_key)
+
 
         
 # Streamlit UI

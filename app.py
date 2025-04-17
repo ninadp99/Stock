@@ -61,7 +61,7 @@ def fetch_news_articles(stock_symbol):
         if nyt_response.status_code == 200:
             nyt_json = nyt_response.json()
             docs = nyt_json.get("response", {}).get("docs", [])
-            if docs:
+            if docs is not None:
                 for article in docs:
                     nyt_data.append({
                         "title": article.get("headline", {}).get("main", ""),

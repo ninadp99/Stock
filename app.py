@@ -174,18 +174,34 @@ if st.button("Analyze"):
 
         st.subheader("📰 News Articles")
         articles = fetch_news_articles(stock_symbol)
-        news_with_sentiment = news_df.merge(pd.DataFrame(articles), how='left', left_on='date', right_on=lambda x: pd.to_datetime(articles[x]['publishedAt']).dt.date if 'publishedAt' in articles[x] else None)
+        enriched_news = []
+        for article in articles:
+            title = article.get('title', 'N/A')
+            description = article.get('description', 'No summary available')
+            published_at = article.get('publishedAt', '')[:10]
+            try:
+                date = datetime.strptime(published_at, '%Y-%m-%d').date()
+                score = analyze_sentiment(f"{title} {description}")
+                article['sentiment'] = score
+                article['date'] = date
+                enriched_news.append(article)
+            except:
+                continue
 
-        for _, row in news_with_sentiment.head(5).iterrows():
+        news_df_display = pd.DataFrame(enriched_news)
+        for _, row in news_df_display.head(5).iterrows():
             title = row.get('title', 'N/A')
             description = row.get('description', 'No summary available')
             date = row.get('date', 'N/A')
-            url = row.get('url', '')  # fallback
+            sentiment = row.get('sentiment', 0)
+            url = row.get('url', '') or row.get('webUrl', '') or row.get('web_url', '')
+
             st.markdown(f"**{title}**")
             st.markdown(f"🗓 Date: {date}")
-            st.markdown(f"📊 Sentiment: {row['sentiment']:.2f}")
+            st.markdown(f"📊 Sentiment: {sentiment:.2f}")
             st.markdown(f"📝 {description}")
             if url:
+                st.markdown(f"🔗 [Read More]({url})")
                 st.markdown(f"🔗 [Read More]({url})")
 
         st.subheader("⬇️ Download Data")

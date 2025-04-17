@@ -53,6 +53,7 @@ def fetch_news_articles(stock_symbol):
         nyt_url = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
         nyt_params = {
             "q": stock_symbol,
+            "fq": f"body:(\"{stock_symbol}\")",
             "sort": "newest",
             "api-key": nytimes_api_key
         }
@@ -64,7 +65,7 @@ def fetch_news_articles(stock_symbol):
                 for article in docs:
                     nyt_data.append({
                         "title": article.get("headline", {}).get("main", ""),
-                        "description": article.get("snippet", ""),
+                        "description": article.get("abstract") or article.get("lead_paragraph", ""),
                         "publishedAt": article.get("pub_date", ""),
                         "url": article.get("web_url", "")
                     })

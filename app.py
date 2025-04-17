@@ -155,10 +155,10 @@ if st.button("Analyze"):
         # Reddit posts preview
         st.subheader("🗣️ Top Reddit Posts")
         for _, r in reddit_df.head(5).iterrows():
-            # Display title with clickable link and sentiment
-            st.markdown(f"**{r['title']}**  
-[Link]({r['url']})")
-            st.write(f"Sentiment: {r['sentiment']:.2f}") {r['sentiment']:.2f}")
+            # Display title with clickable link
+            st.markdown(f"**{r['title']}**  \n[Link]({r['url']})")
+            # Display sentiment score
+            st.write(f"Sentiment: {r['sentiment']:.2f}")
 
         # News tables
         st.subheader("📰 News Articles")

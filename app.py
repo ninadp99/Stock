@@ -11,6 +11,7 @@ import os
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
 from io import StringIO
+import uuid
 
 # Load environment variables
 load_dotenv()
@@ -113,10 +114,16 @@ def fetch_news_articles(stock_symbol):
 def display_reddit_posts(reddit_df):
     st.subheader("🗣️ Reddit Posts")
     for i, post in reddit_df.head(5).iterrows():
-        unique_key = f"reddit_text_area_{i}_{hash(post['url'])}"
-        st.markdown(f"**{post['title']}**  \n[View Post]({post['url']})")
-        st.markdown(f"Sentiment: {post['sentiment']:.2f}")
-        st.text_area("Content", post['text'], height=100, key=unique_key)
+        post_title = post['title']
+        post_text = post['text']
+        post_url = post['url']
+        sentiment = post['sentiment']
+
+        unique_key = f"reddit_text_{i}_{uuid.uuid4()}"
+
+        st.markdown(f"**{post_title}**  \n[View Post]({post_url})")
+        st.markdown(f"Sentiment: {sentiment:.2f}")
+        st.text_area("Content", post_text, height=100, key=unique_key)
         
 # Streamlit UI
 st.set_page_config(page_title="Stock Sentiment Analyzer", layout="wide")

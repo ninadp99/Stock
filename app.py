@@ -164,7 +164,6 @@ if st.button("Analyze"):
             st.markdown(f"**{post['title']}**  \n[View Post]({post['url']})")
             st.markdown(f"Sentiment: {post['sentiment']:.2f}")
             st.text_area("Content", post['text'], height=100)
-            
 
         st.subheader("📰 News Articles")
         col1, col2 = st.columns(2)

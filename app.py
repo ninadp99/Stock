@@ -53,16 +53,15 @@ def fetch_news_articles(stock_symbol):
         nyt_url = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
         nyt_params = {
             "q": stock_symbol,
-            "fq": f"body:(\"{stock_symbol}\")",
             "sort": "newest",
+            "fq": f"headline:(\"{stock_symbol}\")",
             "api-key": nytimes_api_key
         }
         nyt_response = requests.get(nyt_url, params=nyt_params)
         if nyt_response.status_code == 200:
             nyt_json = nyt_response.json()
-            docs = nyt_json.get("response", {}).get("docs", [])
-            if docs is not None:
-                for article in docs:
+            if nyt_json and 'response' in nyt_json and 'docs' in nyt_json['response']:
+                for article in nyt_json['response']['docs']:
                     nyt_data.append({
                         "title": article.get("headline", {}).get("main", ""),
                         "description": article.get("abstract") or article.get("lead_paragraph", ""),

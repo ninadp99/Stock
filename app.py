@@ -50,7 +50,8 @@ def fetch_news_articles(stock_symbol):
     nyt_params = {
         "q": stock_symbol,
         "api-key": nytimes_api_key,
-        "sort": "newest"
+        "sort": "newest",
+        "fq": "document_type:(\"article\")"
     }
     nyt_response = requests.get(nyt_url, params=nyt_params).json()
     nyt_articles = nyt_response.get("response", {}).get("docs", [])
@@ -69,7 +70,7 @@ def fetch_news_articles(stock_symbol):
     for item in nyt_articles:
         nyt_data.append({
             'title': item.get('headline', {}).get('main', ''),
-            'description': item.get('snippet', ''),
+            'description': item.get('abstract') or item.get('lead_paragraph', ''),
             'publishedAt': item.get('pub_date', ''),
             'url': item.get('web_url', '')
         })
@@ -84,6 +85,9 @@ def fetch_news_articles(stock_symbol):
         })
 
     return nyt_data, guardian_data
+
+# The rest of the Streamlit app remains unchanged
+
 
 # Streamlit UI
 st.set_page_config(page_title="Stock Sentiment Analyzer", layout="wide")

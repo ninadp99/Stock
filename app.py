@@ -176,7 +176,9 @@ if st.button("Analyze"):
         nyt_data = []
         guardian_data = []
 
-        for article in enriched_news:
+        articles = fetch_news_articles(stock_symbol)
+        enriched_news = []
+        for article in articles:
             title = article.get('title', 'N/A')
             description = article.get('description', 'No summary available')
             sentiment = article.get('sentiment', 0)

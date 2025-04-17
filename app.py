@@ -64,14 +64,14 @@ def fetch_news_articles(stock_symbol):
             for item in nyt_articles:
                 nyt_data.append({
                     'title': item.get('headline', {}).get('main', ''),
-                    'description': item.get('abstract') or item.get('lead_paragraph', ''),
+                    'description': item.get('abstract', '') or item.get('lead_paragraph', ''),
                     'publishedAt': item.get('pub_date', ''),
                     'url': item.get('web_url', '')
                 })
         else:
-            print("NYT API error:", nyt_response.status_code)
+            st.warning(f"NYTimes API error: {nyt_response.status_code}")
     except Exception as e:
-        print("NYT fetch error:", e)
+        st.error(f"NYTimes fetch error: {e}")
 
     try:
         guardian_url = "https://content.guardianapis.com/search"
@@ -93,9 +93,9 @@ def fetch_news_articles(stock_symbol):
                     'url': item.get('webUrl', '')
                 })
         else:
-            print("Guardian API error:", guardian_response.status_code)
+            st.warning(f"Guardian API error: {guardian_response.status_code}")
     except Exception as e:
-        print("Guardian fetch error:", e)
+        st.error(f"Guardian fetch error: {e}")
 
     return nyt_data, guardian_data
 

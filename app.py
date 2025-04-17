@@ -11,6 +11,7 @@ import os
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
 from io import StringIO
+yf.pdr_override()
 
 # Load environment variables
 load_dotenv()
@@ -32,6 +33,14 @@ sia = SentimentIntensityAnalyzer()
 
 def analyze_sentiment(text):
     return sia.polarity_scores(text)['compound']
+
+def get_ticker_symbol(company_name):
+    try:
+        query = f"https://query1.finance.yahoo.com/v1/finance/search?q={company_name}"
+        response = requests.get(query).json()
+        return response['quotes'][0]['symbol'] if response['quotes'] else company_name
+    except:
+        return company_name
 
 def get_reddit_posts(stock_symbol, limit=50):
     posts = []
